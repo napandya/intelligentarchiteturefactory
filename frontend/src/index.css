@@ -14,6 +14,8 @@
   --accent: #8fd0ff;
   --tile: #2458e6;
   --navy: #0b1f4d;
+  --iaf-stroke: #eef3ff;
+  --iaf-accent: #4c93ff;
 }
 
 :root[data-theme="light"] {
@@ -28,6 +30,8 @@
   --accent: #0a6fae;
   --tile: #2458e6;
   --navy: #d9e4fb;
+  --iaf-stroke: #0b1f4d;
+  --iaf-accent: #1f5fe0;
 }
 
 html {

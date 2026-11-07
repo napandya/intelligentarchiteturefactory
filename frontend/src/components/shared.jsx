@@ -24,11 +24,11 @@ export const CitiLogo = ({ className = "h-6 w-auto" }) => (
 export const IAFMark = ({ className = "h-7 w-auto" }) => (
   <svg viewBox="0 0 96 48" className={className} role="img" aria-label="iAF monogram">
     <rect x="4" y="6" width="6" height="6" fill="#4C93FF" />
-    <line x1="7" y1="18" x2="7" y2="42" stroke="#EEF3FF" strokeWidth="5.5" strokeLinecap="square" />
-    <polyline points="24,42 42,8 60,42" stroke="#4C93FF" strokeWidth="5.5" strokeLinecap="square" strokeLinejoin="miter" fill="none" />
-    <line x1="72" y1="8" x2="72" y2="42" stroke="#EEF3FF" strokeWidth="5.5" strokeLinecap="square" />
-    <line x1="72" y1="8" x2="90" y2="8" stroke="#EEF3FF" strokeWidth="5.5" strokeLinecap="square" />
-    <line x1="72" y1="26" x2="86" y2="26" stroke="#EEF3FF" strokeWidth="5.5" strokeLinecap="square" />
+    <line x1="7" y1="18" x2="7" y2="42" stroke="var(--iaf-stroke, #EEF3FF)" strokeWidth="5.5" strokeLinecap="square" />
+    <polyline points="24,42 42,8 60,42" stroke="var(--iaf-accent, #4C93FF)" strokeWidth="5.5" strokeLinecap="square" strokeLinejoin="miter" fill="none" />
+    <line x1="72" y1="8" x2="72" y2="42" stroke="var(--iaf-stroke, #EEF3FF)" strokeWidth="5.5" strokeLinecap="square" />
+    <line x1="72" y1="8" x2="90" y2="8" stroke="var(--iaf-stroke, #EEF3FF)" strokeWidth="5.5" strokeLinecap="square" />
+    <line x1="72" y1="26" x2="86" y2="26" stroke="var(--iaf-stroke, #EEF3FF)" strokeWidth="5.5" strokeLinecap="square" />
   </svg>
 );
 
