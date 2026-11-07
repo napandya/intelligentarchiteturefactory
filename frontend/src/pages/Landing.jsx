@@ -2,7 +2,7 @@ import { useRef, useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useReducedMotion } from "framer-motion";
 import { Play, Pause, MessageSquare, ShieldCheck, Layers, ArrowUpRight, ChevronRight } from "lucide-react";
-import { CitiLogo, IAFMark, MaskedLines, Reveal, DomainsMarquee, FilmSection, Footer } from "../components/shared";
+import { IAFMark, MaskedLines, Reveal, DomainsMarquee, FilmSection, Footer } from "../components/shared";
 
 const CARDS = [
   {

@@ -1,11 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import {
-  MessageSquare, ShieldCheck, Layers, Send, X, ChevronRight, ArrowLeft,
+  MessageSquare, ShieldCheck, Layers, Send, X, ChevronRight,
   Boxes, FileSearch, Sparkles, Search, Network,
 } from "lucide-react";
-import { CitiLogo, IAFMark } from "../components/shared";
+import AppShell, { NAV_ITEMS } from "../components/AppShell";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -244,7 +243,7 @@ function CardsView({ go }) {
           initial={reduce ? false : { opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 + i * 0.1, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-          className="group flex flex-col border border-white/15 bg-[#0B1220]/70 p-8 text-left backdrop-blur-md transition-[border-color,transform,background-color] duration-300 hover:-translate-y-1.5 hover:border-[var(--electric)]/70 hover:bg-[#0B1220]/90"
+          className="group flex flex-col border border-[var(--line)] bg-[var(--surface)]/80 p-8 text-left backdrop-blur-md transition-[border-color,transform,background-color] duration-300 hover:-translate-y-1.5 hover:border-[var(--electric)]/70 hover:bg-[var(--surface)]"
         >
           <span className="grid h-11 w-11 place-items-center border border-[var(--electric)]/40 bg-[var(--electric)]/15 text-[var(--accent)]">
             <c.icon size={18} aria-hidden="true" />
@@ -654,138 +653,56 @@ function GraphView() {
 export default function Start() {
   const [view, setView] = useState("cards");
   const [project, setProject] = useState(null);
-  const navigate = useNavigate();
-  const [user, setUser] = useState(null);
 
-  useEffect(() => {
-    fetch(`${API}/api/auth/me`, { credentials: "include" })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((u) => setUser(u))
-      .catch(() => {});
-  }, []);
-
-  const titles = {
-    cards: "Choose where to start",
-    assistant: "Knowledge Assistant",
-    governance: "Governance",
-    editor: "Permit to Design",
-    graph: "USCC Knowledge Graph",
-  };
-
-  const go = (v) => setView(v);
+  const shellView = view === "cards" ? "" : view;
+  const back =
+    view === "editor"
+      ? { label: "Dashboard", title: "Permit to Design", onBack: () => setView("governance") }
+      : view !== "cards"
+        ? { label: "Home", title: NAV_ITEMS.find((n) => n.key === view)?.label || "Home", onBack: () => setView("cards") }
+        : null;
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-[var(--bg)] text-[var(--ink)]">
-      <header className="shrink-0 border-b border-[var(--line)] bg-[#070B14]/85 backdrop-blur-xl">
-        <div className="flex h-14 items-center gap-4 px-4 sm:px-6">
-          <button
-            type="button"
-            onClick={() => setView("cards")}
-            className="flex items-center gap-2"
-            aria-label="iAF — back to start"
-            data-testid="start-iaf-logo"
-          >
-            <IAFMark className="h-5 w-auto" />
-            <span className="hidden text-[13px] font-medium md:block">Intelligent Architecture Factory</span>
-          </button>
-          <p className="ml-2 font-mono text-[10px] uppercase tracking-[0.2em] text-[var(--muted)]" data-testid="start-view-title">
-            / {titles[view]}
-          </p>
-          <div className="ml-auto flex items-center gap-3">
-            {view !== "cards" && (
-              <button
-                type="button"
-                data-testid="start-back-button"
-                onClick={() => (view === "editor" ? setView("governance") : setView("cards"))}
-                className="inline-flex items-center gap-1.5 rounded-full border border-[var(--line-strong)] px-4 py-1.5 text-[12px] font-semibold transition-colors hover:border-[var(--accent)]"
-              >
-                <ArrowLeft size={13} aria-hidden="true" /> {view === "editor" ? "Dashboard" : "Start"}
-              </button>
-            )}
-            <button
-              type="button"
-              onClick={() => navigate("/")}
-              data-testid="start-exit-button"
-              className="hidden items-center gap-1.5 rounded-full border border-[var(--line-strong)] px-4 py-1.5 text-[12px] font-semibold transition-colors hover:border-[var(--accent)] sm:inline-flex"
-            >
-              Exit
-            </button>
-            {user && (
-              <span className="hidden items-center gap-2 sm:inline-flex" data-testid="start-user-chip">
-                {user.picture ? (
-                  <img src={user.picture} alt="" className="h-6 w-6 rounded-full" referrerPolicy="no-referrer" />
-                ) : (
-                  <span className="grid h-6 w-6 place-items-center rounded-full bg-[var(--electric)]/20 font-mono text-[10px] text-[var(--accent)]">
-                    {(user.name || user.email || "?")[0].toUpperCase()}
-                  </span>
-                )}
-                <span className="max-w-[140px] truncate text-[12px] text-[var(--muted)]">{user.name || user.email}</span>
-              </span>
-            )}
-          </div>
-        </div>
-      </header>
-
-      <main id="main" className="min-h-0 flex-1 overflow-hidden">
-        {view === "cards" && (
-          <div className="blueprint-bg h-full overflow-y-auto">
-            <div className="mx-auto flex min-h-full max-w-6xl flex-col justify-center px-5 py-14 sm:px-8">
-              <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-[var(--accent)]">Welcome to iAF</p>
-              <h1 className="mt-4 max-w-2xl font-display text-4xl font-semibold tracking-tight sm:text-5xl">
-                One graph. Three ways in.
-              </h1>
-              <p className="mt-4 max-w-xl text-base leading-relaxed text-[var(--muted)]">
-                Chat with the knowledge graph, run governance for your permits, or explore the thirteen USCC domains.
-              </p>
-              <div className="mt-10">
-                <CardsView go={go} />
-              </div>
+    <AppShell
+      view={shellView}
+      back={back}
+      onHome={() => {
+        setProject(null);
+        setView("cards");
+      }}
+      full={view !== "cards" && view !== "governance"}
+      onNavigate={(v) => {
+        setProject(null);
+        setView(v);
+      }}
+    >
+      {view === "cards" && (
+        <div className="blueprint-bg min-h-full">
+          <div className="mx-auto max-w-6xl px-5 py-14 sm:px-8">
+            <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-[var(--accent)]">Welcome to iAF</p>
+            <h1 className="mt-4 max-w-2xl font-display text-4xl font-semibold tracking-tight sm:text-5xl" data-testid="home-heading">
+              One graph. Three ways in.
+            </h1>
+            <p className="mt-4 max-w-xl text-base leading-relaxed text-[var(--muted)]">
+              Chat with the knowledge graph, run governance for your permits, or explore the thirteen USCC domains.
+            </p>
+            <div className="mt-10">
+              <CardsView go={(v) => setView(v)} />
             </div>
           </div>
-        )}
-        {view === "assistant" && <AssistantView />}
-        {view === "governance" && (
-          <GovernanceView
-            onCreate={(p) => {
-              setProject(p);
-              setView("editor");
-            }}
-          />
-        )}
-        {view === "editor" && project && <PermitEditorView project={project} />}
-        {view === "graph" && <GraphView />}
-      </main>
-
-      {/* MOBILE BOTTOM TAB BAR */}
-      <nav
-        aria-label="Primary"
-        className="shrink-0 border-t border-[var(--line)] bg-[#070B14]/95 backdrop-blur-xl lg:hidden"
-        data-testid="mobile-tab-bar"
-      >
-        <div className="grid grid-cols-3">
-          {[
-            { key: "assistant", icon: MessageSquare, label: "Assistant", testid: "tab-assistant" },
-            { key: "governance", icon: ShieldCheck, label: "Permits", testid: "tab-permits" },
-            { key: "graph", icon: Network, label: "Graph", testid: "tab-graph" },
-          ].map((t) => (
-            <button
-              key={t.key}
-              type="button"
-              onClick={() => setView(t.key)}
-              data-testid={`mobile-${t.testid}`}
-              aria-current={view === t.key || (view === "editor" && t.key === "governance") ? "true" : undefined}
-              className={`flex flex-col items-center gap-1 py-3 text-[10px] font-medium uppercase tracking-[0.12em] transition-colors ${
-                view === t.key || (view === "editor" && t.key === "governance")
-                  ? "text-[var(--accent)]"
-                  : "text-[var(--muted)]"
-              }`}
-            >
-              <t.icon size={18} aria-hidden="true" />
-              {t.label}
-            </button>
-          ))}
         </div>
-      </nav>
-    </div>
+      )}
+      {view === "assistant" && <div className="h-full"><AssistantView /></div>}
+      {view === "governance" && (
+        <GovernanceView
+          onCreate={(p) => {
+            setProject(p);
+            setView("editor");
+          }}
+        />
+      )}
+      {view === "editor" && project && <PermitEditorView project={project} />}
+      {view === "graph" && <GraphView />}
+    </AppShell>
   );
 }

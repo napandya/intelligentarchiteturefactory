@@ -6,7 +6,7 @@ import {
   LayoutGrid, Wallet, ShoppingCart, Landmark, CreditCard, UserPlus, BarChart3,
   AlertTriangle, Megaphone, Store, Package, Gift, FileText, Monitor, Search, ArrowLeft, X,
 } from "lucide-react";
-import { CitiLogo, IAFMark, PermitFlow } from "../components/shared";
+import { IAFMark, PermitFlow } from "../components/shared";
 
 const DOMAINS = [
   { name: "Accounts Management & Servicing", icon: Wallet, caps: ["Account Tokenization", "Merchant or Account Profile", "Product & Account Services"] },

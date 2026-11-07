@@ -56,6 +56,12 @@ Review the current UX/UI of Intelligent Architecture Factory (iAF). Using the v6
 - Mobile bottom tab bar (Assistant / Permits / Graph) on the Start shell under lg; mobile domain select in graph view
 - Production deploy 2 confirmed live (three-card flow + live assistant); brand removal + this batch pending next Deploy
 
+## Implemented (2026-07, v6 — preview, pending Deploy)
+- AppShell component: collapsible left nav on EVERY workspace page (logo→home, 3 nav items, user card + sign out, theme toggle, collapse/expand); mobile keeps bottom tab bar
+- Light/dark theme: light is DEFAULT (data-theme attr, localStorage persisted); toggle in sidebar + mobile header
+- Logo in sidebar is clickable → Home (onHome callback returns to cards view, no route remount bug)
+- Answers to user's Qs: preview-vs-live difference was mid-work deploys; Create Template "black screen" not reproducible — editor + assistant drawer render; assistant IS docked in Create Template (verified)
+
 ## Backlog
 - P0: Add iaf.org custom domain in deployment UI + DNS at registrar (walk user through)
 - P1: Real Citi review data instead of the 36 sample projects

@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import { motion, useScroll, useTransform, useReducedMotion } from "framer-motion";
-import { Header, MaskedLines, Eyebrow, Reveal, DomainsMarquee, ChatCard, FilmSection, Footer, CitiLogo, IAFMark } from "../components/shared";
+import { Header, MaskedLines, Eyebrow, Reveal, DomainsMarquee, ChatCard, FilmSection, Footer, IAFMark } from "../components/shared";
 
 const TRANSFORMATION = [
   ["Permits", "30–32 hrs", "6–8 hrs (auto)"],

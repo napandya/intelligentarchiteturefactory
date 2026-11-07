@@ -16,6 +16,20 @@
   --navy: #0b1f4d;
 }
 
+:root[data-theme="light"] {
+  --bg: #f7faff;
+  --surface: #ffffff;
+  --surface-2: #eef4ff;
+  --line: rgba(10, 46, 120, 0.14);
+  --line-strong: rgba(10, 46, 120, 0.3);
+  --ink: #0a1730;
+  --muted: #45587e;
+  --electric: #1f5fe0;
+  --accent: #0a6fae;
+  --tile: #2458e6;
+  --navy: #d9e4fb;
+}
+
 html {
   scroll-behavior: auto;
 }

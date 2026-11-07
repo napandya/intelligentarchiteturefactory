@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Search, ArrowLeft, FilePlus2, Download, Eye, ChevronDown, X, Sparkles } from "lucide-react";
-import { CitiLogo, IAFMark } from "../components/shared";
+import { IAFMark } from "../components/shared";
 
 const STATUS_STYLES = {
   DRAFT: "border-[#4C93FF]/40 bg-[#4C93FF]/10 text-[#8FD0FF]",

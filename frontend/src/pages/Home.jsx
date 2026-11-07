@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { ArrowUpRight } from "lucide-react";
-import { CitiLogo, IAFMark, Reveal } from "../components/shared";
+import { IAFMark, Reveal } from "../components/shared";
 
 const OPTIONS = [
   {
