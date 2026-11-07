@@ -62,6 +62,12 @@ Review the current UX/UI of Intelligent Architecture Factory (iAF). Using the v6
 - Logo in sidebar is clickable → Home (onHome callback returns to cards view, no route remount bug)
 - Answers to user's Qs: preview-vs-live difference was mid-work deploys; Create Template "black screen" not reproducible — editor + assistant drawer render; assistant IS docked in Create Template (verified)
 
+## Implemented (2026-07, v7)
+- Code pushed to GitHub: github.com/napandya/intelligentarchiteturefactory (commit c411bb6) — full history + README.md (stack, layout, flows, theming, a11y, roadmap), docs/ARCHITECTURE.md, docs/SEQUENCE.md (mermaid diagrams for auth, assistant, permit journey, graph explorer, theming)
+- test_credentials.md intentionally git-ignored (sensitive); .emergent workspace state excluded
+- iAF logo light-mode fix (navy strokes via --iaf-stroke) — in repo; ships on next Deploy
+- Production redeploy confirmed live at intelligentarchitecture.org (left nav, light/dark, Home)
+
 ## Backlog
 - P0: Add iaf.org custom domain in deployment UI + DNS at registrar (walk user through)
 - P1: Real Citi review data instead of the 36 sample projects
