@@ -1,6 +1,8 @@
 import asyncio
 from contextlib import suppress
-from fastapi import FastAPI, APIRouter, Query
+from datetime import timedelta
+from fastapi import FastAPI, APIRouter, Query, Request, Response, HTTPException
+import httpx
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -135,14 +137,101 @@ async def assistant_chat(payload: ChatRequest):
 
     api_key = os.environ.get("EMERGENT_LLM_KEY")
     if not api_key:
-        return {"reply": "Assistant is not configured yet."}
+        return {"reply": "Assistant is not configured yet.", "sources": []}
     chat = LlmChat(
         api_key=api_key,
         session_id=payload.session_id or f"iaf-{uuid.uuid4().hex[:12]}",
         system_message=build_system_message(payload.domain_context),
     )
     response = await chat.send_message(UserMessage(text=payload.message))
-    return {"reply": response}
+    q = payload.message.lower()
+    sources = [d["name"] for d in DOMAINS_CONTEXT if any(w in q for w in d["name"].lower().split())]
+    if not sources and any(w in q for w in ("permit", "design", "build", "pts", "governance")):
+        sources = ["Governance · Permit-to-Design"]
+    if not sources:
+        sources = ["USCC Knowledge Graph"]
+    return {"reply": response, "sources": sources[:3]}
+
+
+SESSION_DATA_URL = "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data"
+
+
+async def get_current_user(request: Request):
+    token = request.cookies.get("session_token")
+    auth = request.headers.get("Authorization")
+    if not token and auth and auth.startswith("Bearer "):
+        token = auth.split(" ", 1)[1]
+    if not token:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    session = await db.user_sessions.find_one({"session_token": token}, {"_id": 0})
+    if not session:
+        raise HTTPException(status_code=401, detail="Invalid session")
+    expires_at = session["expires_at"]
+    if isinstance(expires_at, str):
+        expires_at = datetime.fromisoformat(expires_at)
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+    if expires_at < datetime.now(timezone.utc):
+        raise HTTPException(status_code=401, detail="Session expired")
+    user = await db.users.find_one({"user_id": session["user_id"]}, {"_id": 0})
+    if not user:
+        raise HTTPException(status_code=401, detail="User not found")
+    return user
+
+
+@api_router.post("/auth/session")
+async def create_session(request: Request, response: Response):
+    session_id = request.headers.get("X-Session-ID")
+    if not session_id:
+        raise HTTPException(status_code=400, detail="Missing session id")
+    async with httpx.AsyncClient(timeout=15) as client_http:
+        r = await client_http.get(SESSION_DATA_URL, headers={"X-Session-ID": session_id})
+    if r.status_code != 200:
+        raise HTTPException(status_code=401, detail="Could not verify session")
+    data = r.json()
+    email = data["email"]
+    user = await db.users.find_one({"email": email}, {"_id": 0})
+    if not user:
+        user = {
+            "user_id": f"user_{uuid.uuid4().hex[:12]}",
+            "email": email,
+            "name": data.get("name", ""),
+            "picture": data.get("picture", ""),
+            "created_at": datetime.now(timezone.utc),
+        }
+        await db.users.insert_one(user)
+        user.pop("_id", None)
+    expires_at = datetime.now(timezone.utc) + timedelta(days=7)
+    await db.user_sessions.insert_one({
+        "user_id": user["user_id"],
+        "session_token": data["session_token"],
+        "expires_at": expires_at,
+        "created_at": datetime.now(timezone.utc),
+    })
+    response.set_cookie(
+        "session_token",
+        data["session_token"],
+        path="/",
+        secure=True,
+        httponly=True,
+        samesite="none",
+        max_age=7 * 24 * 3600,
+    )
+    return {"user_id": user["user_id"], "email": user["email"], "name": user["name"], "picture": user.get("picture", "")}
+
+
+@api_router.get("/auth/me")
+async def auth_me(request: Request):
+    return await get_current_user(request)
+
+
+@api_router.post("/auth/logout")
+async def auth_logout(request: Request, response: Response):
+    token = request.cookies.get("session_token")
+    if token:
+        await db.user_sessions.delete_many({"session_token": token})
+    response.delete_cookie("session_token", path="/", secure=True, samesite="none")
+    return {"ok": True}
 
 # Include the router in the main app
 app.include_router(api_router)

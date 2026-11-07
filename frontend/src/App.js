@@ -6,7 +6,9 @@ import Landing from "@/pages/Landing";
 import Workspace from "@/pages/Workspace";
 import Permits from "@/pages/Permits";
 import Start from "@/pages/Start";
+import Login from "@/pages/Login";
 import Home from "@/pages/Home";
+import { AuthCallback, ProtectedRoute } from "@/components/Auth";
 import OptionA from "@/pages/OptionA";
 import OptionB from "@/pages/OptionB";
 import OptionC from "@/pages/OptionC";
@@ -50,6 +52,35 @@ function SmoothScroll({ children }) {
   return children;
 }
 
+function AppRouter() {
+  const location = useLocation();
+  if (location.hash?.includes("session_id=")) {
+    return <AuthCallback next="/start" />;
+  }
+  return (
+    <Routes>
+      <Route path="/" element={<Landing />} />
+      <Route path="/login" element={<Login />} />
+      <Route
+        path="/app"
+        element={<ProtectedRoute next="/app">{() => <Workspace />}</ProtectedRoute>}
+      />
+      <Route
+        path="/permits"
+        element={<ProtectedRoute next="/permits">{() => <Permits />}</ProtectedRoute>}
+      />
+      <Route
+        path="/start"
+        element={<ProtectedRoute next="/start">{() => <Start />}</ProtectedRoute>}
+      />
+      <Route path="/options" element={<Home />} />
+      <Route path="/a" element={<OptionA />} />
+      <Route path="/b" element={<OptionB />} />
+      <Route path="/c" element={<OptionC />} />
+    </Routes>
+  );
+}
+
 function App() {
   return (
     <div className="App grain">
@@ -59,16 +90,7 @@ function App() {
       <BrowserRouter>
         <SmoothScroll>
           <ScrollToTop />
-          <Routes>
-            <Route path="/" element={<Landing />} />
-            <Route path="/app" element={<Workspace />} />
-            <Route path="/permits" element={<Permits />} />
-            <Route path="/start" element={<Start />} />
-            <Route path="/options" element={<Home />} />
-            <Route path="/a" element={<OptionA />} />
-            <Route path="/b" element={<OptionB />} />
-            <Route path="/c" element={<OptionC />} />
-          </Routes>
+          <AppRouter />
         </SmoothScroll>
       </BrowserRouter>
     </div>

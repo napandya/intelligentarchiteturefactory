@@ -50,11 +50,18 @@ Review the current UX/UI of Intelligent Architecture Factory (iAF). Using the v6
 - Citi logo removed everywhere — iAF brand only (Direction 01 Monoline Vector) in all headers/footers/favicon
 - Deploy 2 dispatched (new /start flow + live assistant) — brand removal ships on next Deploy
 
+## Implemented (2026-07, v5 — preview, pending Deploy)
+- Google login gate: /start, /app, /permits protected via ProtectedRoute + /api/auth/me; /login page with "Continue with Google"; AuthCallback exchanges session_id; user chip in Start header; logout helper in Auth.jsx
+- Trust citations: /api/assistant/chat returns sources (matched domains or governance context); chat renders "Sources:" chips under each answer
+- Mobile bottom tab bar (Assistant / Permits / Graph) on the Start shell under lg; mobile domain select in graph view
+- Production deploy 2 confirmed live (three-card flow + live assistant); brand removal + this batch pending next Deploy
+
 ## Backlog
 - P0: Add iaf.org custom domain in deployment UI + DNS at registrar (walk user through)
-- P0: Login gate (Emergent Managed Google Auth) — user chose this; implementation planned but not yet built
 - P1: Real Citi review data instead of the 36 sample projects
 - P1: Persist assistant conversations in MongoDB
+- P2: Team email allowlist (currently any Google account can enter)
+- P2: Richer citations (per-fact source lines once the graph API returns structured sources)
 - P1: Replace recreated Citi/iAF SVG marks with official brand assets if available
 - P2: Mobile nav drawer for option pages
 - P2: Light-theme variant (brand board has a validated light palette)

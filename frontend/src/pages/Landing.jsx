@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useReducedMotion } from "framer-motion";
 import { Play, Pause, MessageSquare, ShieldCheck, Layers, ArrowUpRight, ChevronRight } from "lucide-react";
 import { CitiLogo, IAFMark, MaskedLines, Reveal, DomainsMarquee, FilmSection, Footer } from "../components/shared";
@@ -35,6 +35,7 @@ export default function Landing() {
   const videoRef = useRef(null);
   const [paused, setPaused] = useState(false);
   const reduce = useReducedMotion();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (reduce && videoRef.current) {
@@ -82,13 +83,14 @@ export default function Landing() {
                 Intelligent Architecture Factory
               </span>
             </div>
-            <a
-              href="#enter"
+            <button
+              type="button"
+              onClick={() => navigate("/start")}
               data-testid="landing-enter-link"
               className="ml-auto rounded-full bg-[var(--electric)] px-5 py-2 text-[13px] font-semibold text-[#070B14] transition-[background-color,transform] duration-200 hover:-translate-y-0.5 hover:bg-[var(--accent)]"
             >
               Enter iAF
-            </a>
+            </button>
           </div>
         </header>
 
@@ -96,13 +98,14 @@ export default function Landing() {
           <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-[var(--accent)]" data-testid="hero-eyebrow">
             Intelligent Architecture Factory · US Consumer Cards
           </p>
-          <Link
-            to="/start"
+          <button
+            type="button"
+            onClick={() => navigate("/start")}
             data-testid="landing-enter-iaf"
             className="mt-8 inline-flex w-fit items-center gap-2 rounded-full bg-[var(--electric)] px-8 py-4 text-sm font-semibold text-[#070B14] transition-[background-color,transform] duration-200 hover:-translate-y-0.5 hover:bg-[var(--accent)]"
           >
             Enter iAF <ChevronRight size={16} aria-hidden="true" />
-          </Link>
+          </button>
           <MaskedLines
             className="mt-6 max-w-4xl font-display text-5xl font-semibold leading-[1.02] tracking-tight sm:text-7xl"
             accentIndex={1}

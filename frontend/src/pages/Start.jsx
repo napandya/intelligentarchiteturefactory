@@ -83,7 +83,7 @@ function useAssistant(domainContext) {
       });
       if (!res.ok) throw new Error();
       const data = await res.json();
-      setMessages((m) => [...m, { role: "assistant", text: data.reply }]);
+      setMessages((m) => [...m, { role: "assistant", text: data.reply, sources: data.sources || [] }]);
     } catch {
       setMessages((m) => [
         ...m,
@@ -146,6 +146,20 @@ function ChatPanel({ domainContext, full = false, testid = "assistant-panel" }) 
             }
           >
             {m.text}
+            {m.role === "assistant" && m.sources && m.sources.length > 0 && (
+              <p className="mt-2.5 flex flex-wrap items-center gap-1.5 border-t border-[var(--line)] pt-2.5">
+                <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-[var(--muted)]">Sources:</span>
+                {m.sources.map((s) => (
+                  <span
+                    key={s}
+                    data-testid="citation-chip"
+                    className="rounded-full border border-[var(--electric)]/30 bg-[var(--electric)]/10 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.1em] text-[var(--accent)]"
+                  >
+                    {s}
+                  </span>
+                ))}
+              </p>
+            )}
           </div>
         ))}
         {busy && (
@@ -641,6 +655,14 @@ export default function Start() {
   const [view, setView] = useState("cards");
   const [project, setProject] = useState(null);
   const navigate = useNavigate();
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    fetch(`${API}/api/auth/me`, { credentials: "include" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((u) => setUser(u))
+      .catch(() => {});
+  }, []);
 
   const titles = {
     cards: "Choose where to start",
@@ -684,10 +706,22 @@ export default function Start() {
               type="button"
               onClick={() => navigate("/")}
               data-testid="start-exit-button"
-              className="inline-flex items-center gap-1.5 rounded-full border border-[var(--line-strong)] px-4 py-1.5 text-[12px] font-semibold transition-colors hover:border-[var(--accent)]"
+              className="hidden items-center gap-1.5 rounded-full border border-[var(--line-strong)] px-4 py-1.5 text-[12px] font-semibold transition-colors hover:border-[var(--accent)] sm:inline-flex"
             >
               Exit
             </button>
+            {user && (
+              <span className="hidden items-center gap-2 sm:inline-flex" data-testid="start-user-chip">
+                {user.picture ? (
+                  <img src={user.picture} alt="" className="h-6 w-6 rounded-full" referrerPolicy="no-referrer" />
+                ) : (
+                  <span className="grid h-6 w-6 place-items-center rounded-full bg-[var(--electric)]/20 font-mono text-[10px] text-[var(--accent)]">
+                    {(user.name || user.email || "?")[0].toUpperCase()}
+                  </span>
+                )}
+                <span className="max-w-[140px] truncate text-[12px] text-[var(--muted)]">{user.name || user.email}</span>
+              </span>
+            )}
           </div>
         </div>
       </header>
@@ -721,6 +755,37 @@ export default function Start() {
         {view === "editor" && project && <PermitEditorView project={project} />}
         {view === "graph" && <GraphView />}
       </main>
+
+      {/* MOBILE BOTTOM TAB BAR */}
+      <nav
+        aria-label="Primary"
+        className="shrink-0 border-t border-[var(--line)] bg-[#070B14]/95 backdrop-blur-xl lg:hidden"
+        data-testid="mobile-tab-bar"
+      >
+        <div className="grid grid-cols-3">
+          {[
+            { key: "assistant", icon: MessageSquare, label: "Assistant", testid: "tab-assistant" },
+            { key: "governance", icon: ShieldCheck, label: "Permits", testid: "tab-permits" },
+            { key: "graph", icon: Network, label: "Graph", testid: "tab-graph" },
+          ].map((t) => (
+            <button
+              key={t.key}
+              type="button"
+              onClick={() => setView(t.key)}
+              data-testid={`mobile-${t.testid}`}
+              aria-current={view === t.key || (view === "editor" && t.key === "governance") ? "true" : undefined}
+              className={`flex flex-col items-center gap-1 py-3 text-[10px] font-medium uppercase tracking-[0.12em] transition-colors ${
+                view === t.key || (view === "editor" && t.key === "governance")
+                  ? "text-[var(--accent)]"
+                  : "text-[var(--muted)]"
+              }`}
+            >
+              <t.icon size={18} aria-hidden="true" />
+              {t.label}
+            </button>
+          ))}
+        </div>
+      </nav>
     </div>
   );
 }
