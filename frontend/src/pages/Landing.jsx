@@ -14,7 +14,7 @@ const CARDS = [
     testid: "landing-card-assistant",
   },
   {
-    to: "/app?open=permits",
+    to: "/permits",
     icon: ShieldCheck,
     kicker: "02 · Permit journey",
     title: "Permit to Design · Permit to Build",

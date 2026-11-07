@@ -17,40 +17,18 @@ export const DOMAINS = [
   "Rewards & Loyalty",
 ];
 
-export const AGENTS = [
-  "Architecture Knowledge",
-  "Technology Risk (NFR)",
-  "Architecture Diagrams",
-  "Intake Governance",
-  "Compliance & Controls",
-];
-
 export const CitiLogo = ({ className = "h-6 w-auto" }) => (
-  <svg viewBox="0 0 64 32" className={className} role="img" aria-label="Citi">
-    <path d="M14 13 Q 26 2 38 13" stroke="#E30917" strokeWidth="3.2" fill="none" strokeLinecap="round" />
-    <text
-      x="32"
-      y="28"
-      textAnchor="middle"
-      fontFamily="Interstate, 'IBM Plex Sans', sans-serif"
-      fontWeight="600"
-      fontSize="22"
-      fill="#EEF3FF"
-      letterSpacing="0.5"
-    >
-      citi
-    </text>
-  </svg>
+  <img src="/assets/citi-logo.webp" alt="Citi" className={`object-contain ${className}`} />
 );
 
 export const IAFMark = ({ className = "h-7 w-auto" }) => (
-  <svg viewBox="0 0 88 48" className={className} role="img" aria-label="iAF monogram">
+  <svg viewBox="0 0 96 48" className={className} role="img" aria-label="iAF monogram">
     <rect x="4" y="6" width="6" height="6" fill="#4C93FF" />
     <line x1="7" y1="18" x2="7" y2="42" stroke="#EEF3FF" strokeWidth="5.5" strokeLinecap="square" />
-    <polyline points="18,42 34,8 48,8" stroke="#EEF3FF" strokeWidth="5.5" strokeLinecap="square" fill="none" />
-    <line x1="48" y1="8" x2="48" y2="42" stroke="#EEF3FF" strokeWidth="5.5" strokeLinecap="square" />
-    <line x1="48" y1="8" x2="64" y2="8" stroke="#EEF3FF" strokeWidth="5.5" strokeLinecap="square" />
-    <line x1="26" y1="26" x2="62" y2="26" stroke="#4C93FF" strokeWidth="5.5" strokeLinecap="square" />
+    <polyline points="24,42 42,8 60,42" stroke="#4C93FF" strokeWidth="5.5" strokeLinecap="square" strokeLinejoin="miter" fill="none" />
+    <line x1="72" y1="8" x2="72" y2="42" stroke="#EEF3FF" strokeWidth="5.5" strokeLinecap="square" />
+    <line x1="72" y1="8" x2="90" y2="8" stroke="#EEF3FF" strokeWidth="5.5" strokeLinecap="square" />
+    <line x1="72" y1="26" x2="86" y2="26" stroke="#EEF3FF" strokeWidth="5.5" strokeLinecap="square" />
   </svg>
 );
 
@@ -406,7 +384,7 @@ export const Footer = ({ variant = "a" }) => (
         </div>
       </div>
       <p className="mt-16 border-t border-[var(--line)] pt-8 font-mono text-[11px] uppercase tracking-[0.18em] text-[var(--muted)]/70">
-        © 2026 Citigroup Inc. Citi and Arc Design is a registered service mark. iAF identity v0.1 — Ligature direction.
+        © 2026 Citigroup Inc. Citi and Arc Design is a registered service mark. iAF identity v0.1 — Vector direction.
       </p>
     </div>
   </footer>

@@ -1,10 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="iAF">
   <rect width="64" height="64" rx="14" fill="#2458E6"/>
   <g stroke="#FFFFFF" stroke-width="5.5" stroke-linecap="square" fill="none">
-    <line x1="14" y1="24" x2="14" y2="44"/>
-    <rect x="11.5" y="13.5" width="5" height="5" fill="#FFFFFF" stroke="none"/>
-    <polyline points="24,44 32,16 40,44"/>
-    <line x1="42" y1="16" x2="42" y2="44"/>
-    <line x1="42" y1="30" x2="52" y2="30"/>
+    <line x1="13" y1="24" x2="13" y2="44"/>
+    <rect x="10.5" y="13.5" width="5" height="5" fill="#FFFFFF" stroke="none"/>
+    <polyline points="22,44 34,14 46,44"/>
+    <line x1="52" y1="14" x2="52" y2="44"/>
+    <line x1="52" y1="14" x2="62" y2="14"/>
+    <line x1="52" y1="29" x2="60" y2="29"/>
   </g>
 </svg>
