@@ -5,6 +5,7 @@ import Lenis from "lenis";
 import Landing from "@/pages/Landing";
 import Workspace from "@/pages/Workspace";
 import Permits from "@/pages/Permits";
+import Start from "@/pages/Start";
 import Home from "@/pages/Home";
 import OptionA from "@/pages/OptionA";
 import OptionB from "@/pages/OptionB";
@@ -62,6 +63,7 @@ function App() {
             <Route path="/" element={<Landing />} />
             <Route path="/app" element={<Workspace />} />
             <Route path="/permits" element={<Permits />} />
+            <Route path="/start" element={<Start />} />
             <Route path="/options" element={<Home />} />
             <Route path="/a" element={<OptionA />} />
             <Route path="/b" element={<OptionB />} />
