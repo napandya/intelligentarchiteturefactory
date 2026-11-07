@@ -656,10 +656,6 @@ export default function Start() {
     <div className="flex h-screen flex-col overflow-hidden bg-[var(--bg)] text-[var(--ink)]">
       <header className="shrink-0 border-b border-[var(--line)] bg-[#070B14]/85 backdrop-blur-xl">
         <div className="flex h-14 items-center gap-4 px-4 sm:px-6">
-          <Link to="/" aria-label="Citi — back to landing" data-testid="start-citi-logo">
-            <CitiLogo className="h-5 w-auto" />
-          </Link>
-          <span className="h-5 w-px bg-[var(--line-strong)]" aria-hidden="true" />
           <button
             type="button"
             onClick={() => setView("cards")}

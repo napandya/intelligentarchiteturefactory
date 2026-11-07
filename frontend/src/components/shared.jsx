@@ -18,7 +18,7 @@ export const DOMAINS = [
 ];
 
 export const CitiLogo = ({ className = "h-6 w-auto" }) => (
-  <img src="/assets/citi-logo.webp" alt="Citi" className={`object-contain ${className}`} />
+  <img src="/assets/citi-logo.webp" alt="Citi" className={`hidden object-contain ${className}`} />
 );
 
 export const IAFMark = ({ className = "h-7 w-auto" }) => (
@@ -84,10 +84,6 @@ export const Header = ({ variant = "a" }) => {
   return (
     <header className="fixed inset-x-0 top-0 z-50 border-b border-[var(--line)] bg-[#070B14]/75 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-5 sm:px-8">
-        <a href="#top" aria-label="Citi — back to top" data-testid={`header-citi-logo-${variant}`}>
-          <CitiLogo />
-        </a>
-        <span className="h-6 w-px bg-[var(--line-strong)]" aria-hidden="true" />
         <a href="#top" className="flex items-center gap-2.5" aria-label="iAF — back to top" data-testid={`header-iaf-logo-${variant}`}>
           <IAFMark />
           <span className="hidden text-[13px] font-medium tracking-wide text-[var(--ink)] md:block">
@@ -355,8 +351,6 @@ export const Footer = ({ variant = "a" }) => (
       <div className="flex flex-col gap-12 md:flex-row md:items-start md:justify-between">
         <div className="max-w-sm">
           <div className="flex items-center gap-4">
-            <CitiLogo className="h-6 w-auto" />
-            <span className="h-6 w-px bg-[var(--line-strong)]" aria-hidden="true" />
             <IAFMark className="h-6 w-auto" />
           </div>
           <p className="mt-5 text-sm leading-relaxed text-[var(--muted)]">

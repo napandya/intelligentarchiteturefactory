@@ -46,6 +46,10 @@ Review the current UX/UI of Intelligent Architecture Factory (iAF). Using the v6
 - Logo: Direction 01 Monoline Vector (blue A) everywhere; official Citi webp logo in all headers
 - /permits standalone page still exists (pre-Start version)
 
+## Implemented (2026-07, v4)
+- Citi logo removed everywhere — iAF brand only (Direction 01 Monoline Vector) in all headers/footers/favicon
+- Deploy 2 dispatched (new /start flow + live assistant) — brand removal ships on next Deploy
+
 ## Backlog
 - P0: Add iaf.org custom domain in deployment UI + DNS at registrar (walk user through)
 - P0: Login gate (Emergent Managed Google Auth) — user chose this; implementation planned but not yet built

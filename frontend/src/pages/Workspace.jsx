@@ -72,10 +72,6 @@ export default function Workspace() {
       {/* APP TOP BAR */}
       <header className="sticky top-0 z-40 border-b border-[var(--line)] bg-[#070B14]/85 backdrop-blur-xl">
         <div className="flex h-14 items-center gap-4 px-4 sm:px-6">
-          <Link to="/" aria-label="Citi — back to landing" data-testid="workspace-citi-logo">
-            <CitiLogo className="h-5 w-auto" />
-          </Link>
-          <span className="h-5 w-px bg-[var(--line-strong)]" aria-hidden="true" />
           <div className="flex items-center gap-2">
             <IAFMark className="h-5 w-auto" />
             <span className="hidden text-[13px] font-medium md:block">Intelligent Architecture Factory</span>

@@ -26,7 +26,6 @@ export default function OptionC() {
               Intelligent Architecture Factory — a Citi product for US Consumer Cards
             </p>
             <div className="hidden items-center gap-4 md:flex" aria-hidden="true">
-              <CitiLogo className="h-5 w-auto" />
               <IAFMark className="h-5 w-auto" />
             </div>
           </div>

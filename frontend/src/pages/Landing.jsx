@@ -76,10 +76,6 @@ export default function Landing() {
 
         <header className="relative z-10 border-b border-white/10">
           <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-5 sm:px-8">
-            <a href="/" aria-label="Citi" data-testid="landing-citi-logo">
-              <CitiLogo />
-            </a>
-            <span className="h-6 w-px bg-white/20" aria-hidden="true" />
             <div className="flex items-center gap-2.5">
               <IAFMark />
               <span className="hidden text-[13px] font-medium tracking-wide md:block">

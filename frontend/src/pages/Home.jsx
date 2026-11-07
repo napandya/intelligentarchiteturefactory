@@ -31,8 +31,6 @@ export default function Home() {
     <div className="min-h-screen bg-[var(--bg)] text-[var(--ink)]">
       <main id="main" className="mx-auto flex min-h-screen max-w-6xl flex-col px-5 py-16 sm:px-8">
         <header className="flex items-center gap-4">
-          <CitiLogo className="h-7 w-auto" />
-          <span className="h-6 w-px bg-[var(--line-strong)]" aria-hidden="true" />
           <div className="flex items-center gap-2.5">
             <IAFMark className="h-7 w-auto" />
             <span className="hidden text-sm font-medium tracking-wide md:block">Intelligent Architecture Factory</span>
