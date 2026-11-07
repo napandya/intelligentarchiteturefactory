@@ -1,0 +1,130 @@
+{
+  "project": "iAF (Intelligent Architecture Factory) Landing Page",
+  "theme": "dark",
+  "typography": {
+    "primary_font": "Cabinet Grotesk",
+    "secondary_font": "IBM Plex Sans",
+    "monospace_font": "IBM Plex Mono",
+    "anti_patterns": [
+      "Inter",
+      "Roboto",
+      "Generic SaaS Sans"
+    ],
+    "usage": {
+      "headings": "Cabinet Grotesk, font-light to font-bold. Tight tracking (tracking-tight) for H1-H2.",
+      "body": "IBM Plex Sans, text-base, leading-relaxed for optimal readability.",
+      "labels_mono": "IBM Plex Mono, uppercase, tracking-[0.2em], text-xs for technical overlines and metadata."
+    }
+  },
+  "colors": {
+    "surface": "#070B14",
+    "ink": "#EEF3FF",
+    "navy": "#0B1F4D",
+    "electric": "#4C93FF",
+    "electric_light": "#1F5FE0",
+    "tile": "#2458E6",
+    "accent_dark": "#8FD0FF",
+    "accent_light": "#0A6FAE",
+    "citi_red": "#FF0000",
+    "rules": [
+      "No red for iAF product UI. Red is exclusively reserved for the Citi corporate logo arc.",
+      "Flat fills only for the iAF logo, no gradients or glows on the mark.",
+      "No purple or violet anywhere.",
+      "Validated contrast: #EEF3FF on #070B14 (17.71:1), #4C93FF on #070B14 (6.49:1), #8FD0FF on #070B14 (11.84:1)."
+    ]
+  },
+  "logos": {
+    "citi_corporate": "Citi logo with signature red arc. Must be placed in header alongside iAF logo.",
+    "iaf_product": "iAF monogram: '02 — Ligature / Shared-stem construction'. A and F share one vertical stem, single blue rail runs through A's crossbar and becomes F's arm. Flat blue fills only."
+  },
+  "accessibility": {
+    "compliance": "ADA and WCAG AA Compliant",
+    "focus_states": "All interactive elements must have a visible focus ring (e.g., focus:ring-2 focus:ring-accent_dark focus:outline-none).",
+    "contrast": "Strict adherence to provided AA contrast pairs. Do not use low-contrast text.",
+    "motion": "Use prefers-reduced-motion media query to disable heavy animations for users who prefer reduced motion.",
+    "landmarks": "Semantic HTML5 landmarks: <header>, <main>, <nav>, <section>, <footer>.",
+    "testing": "All interactive and key informational elements MUST include a data-testid attribute in kebab-case (e.g., data-testid='hero-cta-button').",
+    "footer": "Must include an explicit Accessibility Statement link."
+  },
+  "layouts": {
+    "header": "Sticky nav. Glassmorphism backdrop (backdrop-blur-xl bg-[#070B14]/70) to ensure readability over scrolling content. No complete transparency. Must contain Citi logo + iAF logo + semantic nav links.",
+    "footer": "Generous padding (py-24), dark background (#070B14). Include standard corporate legalities and accessibility links."
+  },
+  "landing_page_directions": {
+    "Option_A_Kinetic_Knowledge_Graph": {
+      "name": "Kinetic Knowledge Graph (The Star)",
+      "vibe": "Immersive, dynamic, highly interactive enterprise tool.",
+      "hero": "Full-bleed 'react-force-graph-3d' background showing the connected domains and APIs. Headline uses a masked line-by-line reveal on load.",
+      "features": "Bento grid layout for capability cards (Architecture Diagrams, Architecture Assessment, Risk & Compliance, API Catalog).",
+      "video_showcase": "Cinematic centered video slot with a subtle glowing border (#0B1F4D) and 'Play' micro-interaction."
+    },
+    "Option_B_Technical_Blueprint": {
+      "name": "Technical Blueprint (Factory Floor)",
+      "vibe": "Architectural, dense, structured, precise.",
+      "hero": "Technical wireframe aesthetic. Uses abstract blueprint graphics and a monospace typography mix for a 'command center' feel.",
+      "features": "Strict grid hierarchy. High density bento grids. Left sidebar explicitly mimicking the product's 'Domains' navigation to train the user.",
+      "video_showcase": "Asymmetrical layout. Video placed in a hard-edged container with technical metadata overlay."
+    },
+    "Option_C_Editorial_Enterprise": {
+      "name": "Editorial Enterprise",
+      "vibe": "High-end corporate report, authoritative, clean.",
+      "hero": "High-contrast editorial layout. Large typography, structured whitespace. Spotlighted floating UI screenshots instead of abstract graphs.",
+      "features": "Staggered 'Cardless' lists for features. Clean horizontal bands separating the lifecycle tabs (Draft/Review/Approved) explanation.",
+      "video_showcase": "Wide, panoramic video slot acting as a visual break between content sections, surrounded by massive negative space."
+    }
+  },
+  "components_and_sections": {
+    "hero": "Highlight the living knowledge graph connecting domains, capabilities, diagrams, APIs, applications, and owners.",
+    "product_explanation": "Simple architecture mapping explainer: Architecture Diagrams, Architecture Assessment, Risk & Compliance, API Catalog.",
+    "navigation_explainer": "Visual breakdown of the app: Domains sidebar (Accounts Management, Agentic Commerce, etc.), Capability cards, Diagram lifecycle tabs (All/Draft/Review/Approved/Rejected).",
+    "video_showcase": "Slot for the v6 product video. Since video asset is missing, design a sleek video placeholder with a play button overlay and a descriptive caption."
+  },
+  "motion": {
+    "staggered_reveals": "Use framer-motion to stagger the entrance of bento grid items and capability cards.",
+    "kinetic_typography": "Masked line-by-line reveal for hero H1.",
+    "marquee": "Use a slow, elegant marquee for the massive list of Domains (Accounts Management, Agentic Commerce, etc.) to show scale without cluttering the UI.",
+    "hover_states": "Subtle -translate-y-1 and shadow enhancement on capability cards. Always ensure text remains readable on hover."
+  },
+  "3d_libraries": {
+    "recommendation": "react-force-graph-3d",
+    "usage": "Use for Option A's hero background. Renders a WebGL 3D force-directed graph. Configure nodes to represent Domains, APIs, and Applications. Ensure background color is transparent (rgba(0,0,0,0)) so the Surface color (#070B14) shows through."
+  },
+  "image_urls": {
+    "knowledge_graph_abstract": {
+      "url": "https://images.unsplash.com/photo-1644088379091-d574269d422f?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2MjJ8MHwxfHNlYXJjaHwxfHxkYXJrJTIwYmx1ZSUyMG5ldHdvcmslMjBkYXRhJTIwZ3JhcGh8ZW58MHx8fHwxNzk0MDc0ODYxfDA&ixlib=rb-4.1.0&q=85",
+      "description": "Abstract blue network nodes and lines, perfect for graph visualization fallback."
+    },
+    "technical_blueprint": {
+      "url": "https://images.unsplash.com/photo-1600132806370-bf17e65e942f?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1OTN8MHwxfHNlYXJjaHwxfHx0ZWNobmljYWwlMjBibHVlcHJpbnQlMjBhcmNoaXRlY3R1cmUlMjBkYXJrfGVufDB8fHx8MTc5NDA3NDg2MXww&ixlib=rb-4.1.0&q=85",
+      "description": "Dark blue technical wireframe sketches for Option B."
+    },
+    "enterprise_abstract": {
+      "url": "https://images.unsplash.com/photo-1758073519996-6d3c63b4922c?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzNzl8MHwxfHNlYXJjaHw0fHxkYXJrJTIwZW50ZXJwcmlzZSUyMHRlY2hub2xvZ3klMjBhYnN0cmFjdHxlbnwwfHx8fDE3OTQwNzQ4NjF8MA&ixlib=rb-4.1.0&q=85",
+      "description": "Abstract blue glowing wave patterns for enterprise aesthetic."
+    }
+  },
+  "UNIVERSAL_GUIDELINES_FOR_MAIN_AGENT": [
+    "You tend to converge toward generic, 'on distribution' outputs. In frontend design, this creates what users call the 'AI slop' aesthetic. Avoid this: make creative, distinctive frontends that surprise and delight.",
+    "Dark colors look good when used independently without gradients. DO NOT use dark colors as gradients.",
+    "Don't make generic centered layouts, simplistic gradients, and uniform styling.",
+    "Create depth through layered design elements with z-index hierarchy.",
+    "Use glass-morphism effects with backdrop filters (12-24px blur). CRITICAL: Do NOT use fully transparent backgrounds behind text or in headers over images.",
+    "You MUST NOT apply universal transition. Eg: `transition: all`. This results in breaking transforms. Always add transitions for specific interactive elements like button, input excluding transforms.",
+    "You MUST NOT center align the app container, ie do not add `.App { text-align: center; }` in the css file. This disrupts the human natural reading flow of text.",
+    "Always use modern button styles like pill-shaped, or sharp button with interaction animations & color relevant to the app style.",
+    "NEVER: use AI assistant Emoji characters like 🤖🧠💭💡🔮🎯 etc for icons.",
+    "Every interaction needs micro-animations - hover states, transitions, parallax effects, and entrance animations. Static = dead.",
+    "Use 2-3x more spacing than feels comfortable. Cramped designs look cheap.",
+    "Subtle grain textures, noise overlays, custom cursors, selection states, and loading animations: separates good from extraordinary.",
+    "Main agent relies on these image URLs. Missing categories = main agent will use placeholder text which is FORBIDDEN.",
+    "Prioritize using pre-existing components from src/components/ui when applicable.",
+    "Use `sonner` for toasts. Sonner component is located in `/app/frontend/src/components/ui/sonner.jsx`."
+  ],
+  "instructions_to_main_agent": {
+    "files": "Use `.js` and `.jsx` file extensions, NOT `.tsx`.",
+    "shadcn": "Heavily customize Shadcn UI components. Use raw Tailwind/HTML for layout structures (Grid, Flex), do not wrap entire pages in Shadcn Cards.",
+    "testing": "All interactive elements (links, buttons, form fields, tabs) MUST have `data-testid` attributes.",
+    "accessibility": "Ensure aria-labels are present. Focus rings must be high contrast (AA). Implement `prefers-reduced-motion` utility classes on all animations.",
+    "hero_video": "The v6 video asset is not provided. Implement an elegant, interactive video placeholder section that prompts the user to 'Play'."
+  }
+}
