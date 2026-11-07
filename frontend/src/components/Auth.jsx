@@ -43,6 +43,7 @@ export function SignInCard({ next = "/start", testid = "sign-in" }) {
 export function AuthCallback({ next = "/start" }) {
   const navigate = useNavigate();
   const hasProcessed = useRef(false);
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     if (hasProcessed.current) return;
@@ -61,11 +62,34 @@ export function AuthCallback({ next = "/start" }) {
         window.history.replaceState(null, "", window.location.pathname);
         navigate(next, { replace: true, state: { user } });
       } catch {
-        navigate("/login", { replace: true });
+        setFailed(true);
       }
     };
     process();
   }, [navigate, next]);
+
+  if (failed) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[var(--bg)] px-6" data-testid="auth-callback-failed">
+        <div className="max-w-sm text-center">
+          <IAFMark className="mx-auto h-8 w-auto" />
+          <p className="mt-6 font-display text-xl font-semibold">Sign-in didn&apos;t complete</p>
+          <p className="mt-2 text-sm leading-relaxed text-[var(--muted)]">
+            Your browser blocked the sign-in session. Try again — and if it repeats, enable cross-site cookies for this
+            site in your browser settings.
+          </p>
+          <button
+            type="button"
+            data-testid="auth-retry-button"
+            onClick={() => navigate("/login?next=" + encodeURIComponent(next), { replace: true })}
+            className="mt-6 rounded-full bg-[var(--electric)] px-6 py-3 text-sm font-semibold text-[#070B14] transition-[background-color,transform] duration-200 hover:-translate-y-0.5 hover:bg-[var(--accent)]"
+          >
+            Try again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-[var(--bg)]" data-testid="auth-callback">
