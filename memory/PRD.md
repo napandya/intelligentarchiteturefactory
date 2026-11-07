@@ -32,8 +32,13 @@ Review the current UX/UI of Intelligent Architecture Factory (iAF). Using the v6
 - Option C: editorial direction, massive type, panoramic film, pull quote, transformation table, numbered navigation explainer
 - Accessibility: skip link, semantic landmarks, AA contrast, captions, reduced-motion support, data-testids
 
+## Implemented (2026-07, v2)
+- `/` is now THE landing page: scene-one loop of the v6 film as hero background (dimmed, with pause control), Citi + iAF ligature header, masked headline, and three cards — Knowledge Assistant, Permit journey, 13 domains — each deep-linking into the main page
+- `/app` is the main workspace: Citi+iAF top bar with search, 13-domain sidebar (selectable), capability cards (Diagrams / Assessment / Risk / API Catalog), lifecycle tabs filtering the diagram table, Permit-to-Design→Build flow section, and a floating Knowledge Assistant panel (opens automatically via /app?open=assistant)
+- Option pages still available at /options, /a, /b, /c
+
 ## Backlog
-- P0: Pick final direction; make it the default route
+- P0: Point iaf.org at this app (deploy + custom domain); decide whether "login" means Citi SSO — currently no auth gate
 - P1: Swap Knowledge Assistant mock for real chat once a backend exists
 - P1: Replace recreated Citi/iAF SVG marks with official brand assets if available
 - P2: Mobile nav drawer for option pages
