@@ -135,6 +135,7 @@ class ChatRequest(BaseModel):
     domain_context: str | None = None
     session_id: str | None = None
     file_ids: list[str] = []
+    user_id: str | None = None
 
 
 STORAGE_BASE = (os.environ.get("INTEGRATION_PROXY_URL") or "").strip() or "https://integrations.emergentagent.com"
@@ -240,7 +241,49 @@ async def assistant_chat(payload: ChatRequest):
     if not sources:
         sources = ["USCC Knowledge Graph"]
     sources = sources[:3] + [s for s in file_sources if s not in sources[:3]]
-    return {"reply": response, "sources": sources}
+    session_id = payload.session_id or f"iaf-{uuid.uuid4().hex[:12]}"
+    now = datetime.now(timezone.utc).isoformat()
+    await db.chat_messages.insert_many([
+        {"id": str(uuid.uuid4()), "user_id": payload.user_id or "anonymous", "session_id": session_id,
+         "role": "user", "content": payload.message, "sources": "", "created_at": now},
+        {"id": str(uuid.uuid4()), "user_id": payload.user_id or "anonymous", "session_id": session_id,
+         "role": "assistant", "content": response, "sources": ",".join(sources), "created_at": now},
+    ])
+    return {"reply": response, "sources": sources, "session_id": session_id}
+
+
+@api_router.get("/assistant/sessions")
+async def assistant_sessions(request: Request):
+    user = await get_current_user(request)
+    pipeline = [
+        {"$match": {"user_id": user["user_id"]}},
+        {"$sort": {"created_at": -1}},
+        {"$group": {
+            "_id": "$session_id",
+            "last_at": {"$first": "$created_at"},
+            "first_user_msg": {"$last": "$content"},
+            "count": {"$sum": 1},
+        }},
+        {"$sort": {"last_at": -1}},
+        {"$limit": 50},
+    ]
+    rows = await db.chat_messages.aggregate(pipeline).to_list(50)
+    return [
+        {"session_id": r["_id"], "last_at": r["last_at"], "preview": (r["first_user_msg"] or "")[:80], "count": r["count"]}
+        for r in rows
+    ]
+
+
+@api_router.get("/assistant/history")
+async def assistant_history(request: Request, session_id: str = Query(...)):
+    user = await get_current_user(request)
+    rows = await db.chat_messages.find(
+        {"user_id": user["user_id"], "session_id": session_id}, {"_id": 0}
+    ).sort("created_at", 1).limit(100).to_list(100)
+    return [
+        {"role": m["role"], "text": m["content"], "sources": m["sources"].split(",") if m.get("sources") else []}
+        for m in rows
+    ]
 
 
 MAX_UPLOAD_BYTES = 25 * 1024 * 1024

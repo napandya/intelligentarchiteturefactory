@@ -60,14 +60,38 @@ const PROJECTS = Array.from({ length: 36 }, (_, i) => {
 const PROJECT_STATUS_STYLES = { ...STATUS_STYLES, "NOT CREATED": "border-[var(--line)] bg-transparent text-[var(--muted)]" };
 
 /* ---------- Chat hook (real backend, graceful fallback) ---------- */
-function useAssistant(domainContext) {
+function useAssistant(domainContext, sessionId, onSession) {
   const [messages, setMessages] = useState([]);
   const [busy, setBusy] = useState(false);
   const endRef = useRef(null);
+  const sessionRef = useRef(sessionId || null);
+
+  useEffect(() => {
+    sessionRef.current = sessionId || null;
+  }, [sessionId]);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, busy]);
+
+  const loadSession = async (sid) => {
+    try {
+      const res = await fetch(`${API}/api/assistant/history?session_id=${encodeURIComponent(sid)}`, { credentials: "include" });
+      if (!res.ok) throw new Error();
+      const rows = await res.json();
+      sessionRef.current = sid;
+      onSession?.(sid);
+      setMessages(rows);
+    } catch {
+      /* keep current view */
+    }
+  };
+
+  const newChat = () => {
+    sessionRef.current = null;
+    onSession?.(null);
+    setMessages([]);
+  };
 
   const send = async (text, fileIds = []) => {
     const t = text.trim();
@@ -79,7 +103,12 @@ function useAssistant(domainContext) {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "text/event-stream" },
         credentials: "include",
-        body: JSON.stringify({ message: t, domain_context: domainContext || null, file_ids: fileIds }),
+        body: JSON.stringify({
+          message: t,
+          domain_context: domainContext || null,
+          file_ids: fileIds,
+          session_id: sessionRef.current || undefined,
+        }),
       });
       if (!res.ok) throw new Error();
       const contentType = res.headers.get("content-type") || "";
@@ -120,6 +149,10 @@ function useAssistant(domainContext) {
         }
       } else {
         const data = await res.json();
+        if (data.session_id && !sessionRef.current) {
+          sessionRef.current = data.session_id;
+          onSession?.(data.session_id);
+        }
         setMessages((m) => [...m, { role: "assistant", text: data.reply, sources: data.sources || [] }]);
       }
     } catch {
@@ -134,7 +167,55 @@ function useAssistant(domainContext) {
       setBusy(false);
     }
   };
-  return { messages, busy, send, endRef };
+  return { messages, busy, send, endRef, loadSession, newChat };
+}
+
+function SessionsSidebar({ active, onSelect, onNew, testid = "sessions-sidebar" }) {
+  const [sessions, setSessions] = useState([]);
+  useEffect(() => {
+    fetch(`${API}/api/assistant/sessions`, { credentials: "include" })
+      .then((r) => (r.ok ? r.json() : []))
+      .then((rows) => setSessions(Array.isArray(rows) ? rows : []))
+      .catch(() => {});
+  }, [active]);
+  return (
+    <aside aria-label="Past conversations" data-testid={testid} className="flex w-56 shrink-0 flex-col border-r border-[var(--line)] bg-[var(--surface)]">
+      <div className="border-b border-[var(--line)] p-3">
+        <button
+          type="button"
+          onClick={onNew}
+          data-testid={`${testid}-new-chat`}
+          className="w-full rounded-full bg-[var(--electric)] px-4 py-2 text-[12px] font-semibold text-[#070B14] transition-[background-color,transform] duration-200 hover:-translate-y-0.5 hover:bg-[var(--accent)]"
+        >
+          + New chat
+        </button>
+      </div>
+      <div className="flex-1 overflow-y-auto p-2">
+        {sessions.length === 0 && (
+          <p className="px-2 py-4 text-center font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--muted)]">
+            No past chats yet
+          </p>
+        )}
+        {sessions.map((s) => (
+          <button
+            key={s.session_id}
+            type="button"
+            onClick={() => onSelect(s.session_id)}
+            data-testid={`session-${s.session_id.slice(-6)}`}
+            aria-current={active === s.session_id ? "true" : undefined}
+            className={`mb-1 block w-full rounded-md px-3 py-2.5 text-left transition-colors ${
+              active === s.session_id ? "bg-[var(--electric)]/15" : "hover:bg-[var(--surface-2)]"
+            }`}
+          >
+            <span className="block truncate text-[12px] font-medium text-[var(--ink)]">{s.preview || "Conversation"}</span>
+            <span className="block font-mono text-[9px] uppercase tracking-[0.12em] text-[var(--muted)]">
+              {s.count} messages
+            </span>
+          </button>
+        ))}
+      </div>
+    </aside>
+  );
 }
 
 const SUGGESTIONS = [
@@ -143,12 +224,16 @@ const SUGGESTIONS = [
   "Which diagrams are in ARB review right now?",
 ];
 
-function ChatPanel({ domainContext, full = false, testid = "assistant-panel" }) {
-  const { messages, busy, send, endRef } = useAssistant(domainContext);
+function ChatPanel({ domainContext, testid = "assistant-panel", sessionId = null, onSession = null }) {
+  const { messages, busy, send, endRef } = useAssistant(domainContext, sessionId, onSession);
+  return <ChatPanelInner messages={messages} busy={busy} send={send} endRef={endRef} testid={testid} />;
+}
+
+function ChatPanelInner({ messages, busy, send, endRef, testid = "assistant-panel" }) {
   const [draft, setDraft] = useState("");
   const [attachments, setAttachments] = useState([]);
   return (
-    <div className={`flex h-full flex-col ${full ? "" : ""}`} data-testid={testid}>
+    <div className="flex h-full flex-col" data-testid={testid}>
       <div className="flex-1 space-y-4 overflow-y-auto px-5 py-5">
         {messages.length === 0 && (
           <div className="mx-auto max-w-lg pt-10 text-center" data-testid="chat-empty-state">
@@ -314,9 +399,20 @@ function CardsView({ go }) {
 }
 
 function AssistantView() {
+  const [sessionId, setSessionId] = useState(null);
+  const { loadSession, newChat, messages, busy, send, endRef } = useAssistant(null, sessionId, setSessionId);
   return (
-    <div className="flex h-full flex-col" data-testid="assistant-view">
-      <ChatPanel testid="assistant-panel-full" />
+    <div className="flex h-full" data-testid="assistant-view">
+      <SessionsSidebar active={sessionId} onSelect={loadSession} onNew={newChat} />
+      <div className="flex min-w-0 flex-1 flex-col">
+        <ChatPanelInner
+          messages={messages}
+          busy={busy}
+          send={send}
+          endRef={endRef}
+          testid="assistant-panel-full"
+        />
+      </div>
     </div>
   );
 }

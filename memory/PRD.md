@@ -82,13 +82,14 @@ Review the current UX/UI of Intelligent Architecture Factory (iAF). Using the v6
 - Port plan: gateway 8090, auth 8021, assistant 8022, files 8023 (8011 taken by pod nginx)
 - Uploads deploy confirmed live on production
 
+## Implemented (2026-07, v10 — preview, pending Deploy)
+- Chat History UI: sessions sidebar (New chat + past conversations) in the assistant; history persisted per user/session; load + continue verified in browser
+- Backend: /api/assistant/sessions + /api/assistant/history; chat persists messages with session_id
+- User decision: Real Reviews Feed and Team Allowlist permanently removed from backlog — do NOT suggest again
+
 ## Backlog
-- P0: Deploy this batch (uploads + file-grounded chat)
-- P0: Cutover from legacy backend to backend-app gateway+services in production (needs Postgres provisioning)
-- P0: www.intelligentarchitecture.org → bare redirect (requested from deployer)
-- P1: Real Citi review data instead of the 36 sample projects
-- P1: Persist assistant conversations (Mongo now; Postgres after cutover)
-- P2: Team email allowlist (currently any Google account can enter)
+- P0: Deploy chat history batch
+- P0: Cutover from legacy backend to backend-app gateway+services in production (needs managed Postgres — provisioning request pending with deployer)
 - P2: Richer citations (per-fact source lines once the graph API returns structured sources)
 
 ## Next tasks
