@@ -60,10 +60,28 @@ backend-app/
 
 | Service    | Port | Owns                                                        |
 | ---------- | ---- | ----------------------------------------------------------- |
-| gateway    | 8080 | Public edge: `/api/*` routing, session/JWT verify, CORS     |
-| auth       | 8011 | Emergent OAuth exchange, session issuance, user profiles    |
-| assistant  | 8012 | Agentic chat, context assembly, streaming SSE               |
-| files      | 8013 | Uploads/downloads, metadata, soft-delete                    |
+| gateway    | 8090 | Public edge: `/api/*` routing, session/JWT verify, CORS     |
+| auth       | 8021 | Emergent OAuth exchange, session issuance, user profiles    |
+| assistant  | 8022 | Agentic chat, context assembly, streaming SSE               |
+| files      | 8023 | Uploads/downloads, metadata, soft-delete                    |
 | postgres   | 5432 | Users, sessions, file metadata, chat history                |
 
 The legacy single-process backend (`/app/backend`) stays running until traffic is cut over.
+
+## Validation status (2026-11)
+
+End-to-end validated locally in the dev pod (Postgres 15 + 3 services + gateway):
+
+- `GET /api/health` through gateway → OK
+- `GET /api/auth/me` with Postgres-backed session → user profile OK
+- `POST /api/files` upload → object storage OK; metadata row in Postgres `files`
+- `GET /api/files` + `GET /api/files/{id}/download` → OK (round-trip verified)
+- `POST /api/assistant/chat` → SSE `delta`/`done` events stream through the gateway; reply + sources; history persisted in Postgres `chat_messages`
+
+Production cutover checklist:
+
+1. Provision managed Postgres; set `DATABASE_URL` on all three services.
+2. Deploy gateway as the public edge (or run behind the existing ingress); set `*_SERVICE_URL` env vars.
+3. Migrate `users`/`sessions`/`files` from MongoDB to Postgres (one-off script).
+4. Repoint frontend `REACT_APP_BACKEND_URL` at the gateway; verify sign-in round trip.
+5. Retire the legacy backend after a soak period.

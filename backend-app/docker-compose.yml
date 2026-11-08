@@ -22,35 +22,35 @@ services:
 
   auth:
     build: ./services
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8011 --app-dir /svc/auth
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8021 --app-dir /svc/auth
     environment:
       DATABASE_URL: postgresql+asyncpg://iaf:iaf@postgres:5432/iaf
     ports:
-      - "8011:8011"
+      - "8021:8021"
     depends_on:
       postgres:
         condition: service_healthy
 
   assistant:
     build: ./services
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8012 --app-dir /svc/assistant
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8022 --app-dir /svc/assistant
     environment:
       DATABASE_URL: postgresql+asyncpg://iaf:iaf@postgres:5432/iaf
       EMERGENT_LLM_KEY: ${EMERGENT_LLM_KEY}
     ports:
-      - "8012:8012"
+      - "8022:8022"
     depends_on:
       postgres:
         condition: service_healthy
 
   files:
     build: ./services
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8013 --app-dir /svc/files
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8023 --app-dir /svc/files
     environment:
       DATABASE_URL: postgresql+asyncpg://iaf:iaf@postgres:5432/iaf
       EMERGENT_LLM_KEY: ${EMERGENT_LLM_KEY}
     ports:
-      - "8013:8013"
+      - "8023:8023"
     depends_on:
       postgres:
         condition: service_healthy
@@ -58,13 +58,13 @@ services:
   gateway:
     build: ./gateway
     environment:
-      GATEWAY_ADDR: ":8080"
-      AUTH_SERVICE_URL: http://auth:8011
-      ASSISTANT_SERVICE_URL: http://assistant:8012
-      FILES_SERVICE_URL: http://files:8013
+      GATEWAY_ADDR: ":8090"
+      AUTH_SERVICE_URL: http://auth:8021
+      ASSISTANT_SERVICE_URL: http://assistant:8022
+      FILES_SERVICE_URL: http://files:8023
       LEGACY_BACKEND_URL: ${LEGACY_BACKEND_URL:-http://host.docker.internal:8001}
     ports:
-      - "8080:8080"
+      - "8090:8090"
     depends_on:
       - auth
       - assistant

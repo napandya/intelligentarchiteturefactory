@@ -76,6 +76,12 @@ Review the current UX/UI of Intelligent Architecture Factory (iAF). Using the v6
 - Frontend chat supports SSE streaming (reads delta/done events) — ready when assistant service replaces legacy endpoint
 - ChatGPT integration confirmed current (gpt-5.4 via EMERGENT_LLM_KEY)
 
+## Implemented (2026-07, v9 — validated in pod, pending production cutover)
+- backend-app platform VALIDATED end-to-end locally: Postgres 15 (users/sessions/files/chat_messages tables), auth+assistant+files FastAPI services healthy on 8021/8022/8023, Go gateway on 8090 with session-verify middleware + SSE passthrough
+- Verified through gateway: auth/me, file upload→list→download round-trip, SSE streaming chat with sources, chat history persisted in Postgres
+- Port plan: gateway 8090, auth 8021, assistant 8022, files 8023 (8011 taken by pod nginx)
+- Uploads deploy confirmed live on production
+
 ## Backlog
 - P0: Deploy this batch (uploads + file-grounded chat)
 - P0: Cutover from legacy backend to backend-app gateway+services in production (needs Postgres provisioning)

@@ -24,10 +24,10 @@ func main() {
 		FilesURL     string
 		LegacyURL    string
 	}{
-		Addr:         envOr("GATEWAY_ADDR", ":8080"),
-		AuthURL:      envOr("AUTH_SERVICE_URL", "http://localhost:8011"),
-		AssistantURL: envOr("ASSISTANT_SERVICE_URL", "http://localhost:8012"),
-		FilesURL:     envOr("FILES_SERVICE_URL", "http://localhost:8013"),
+		Addr:         envOr("GATEWAY_ADDR", ":8090"),
+		AuthURL:      envOr("AUTH_SERVICE_URL", "http://localhost:8021"),
+		AssistantURL: envOr("ASSISTANT_SERVICE_URL", "http://localhost:8022"),
+		FilesURL:     envOr("FILES_SERVICE_URL", "http://localhost:8023"),
 		LegacyURL:    envOr("LEGACY_BACKEND_URL", "http://localhost:8001"),
 	}
 

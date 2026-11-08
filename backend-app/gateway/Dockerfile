@@ -9,5 +9,5 @@ FROM alpine:3.20
 RUN adduser -D app
 USER app
 COPY --from=build /gateway /gateway
-EXPOSE 8080
+EXPOSE 8090
 ENTRYPOINT ["/gateway"]
