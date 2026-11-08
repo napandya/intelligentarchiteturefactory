@@ -1,0 +1,153 @@
+openapi: 3.0.3
+info:
+  title: iAF Gateway API
+  description: Public edge contract for the iAF platform. All browser traffic flows through the Go gateway on /api/*.
+  version: 0.1.0
+servers:
+  - url: /api
+tags:
+  - name: auth
+  - name: assistant
+  - name: files
+  - name: health
+paths:
+  /health:
+    get:
+      tags: [health]
+      summary: Gateway liveness
+      responses:
+        "200":
+          description: OK
+  /auth/session:
+    post:
+      tags: [auth]
+      summary: Exchange an Emergent OAuth session_id for an app session
+      parameters:
+        - name: X-Session-ID
+          in: header
+          required: true
+          schema: { type: string }
+      responses:
+        "200": { $ref: "#/components/responses/UserProfile" }
+        "401": { description: Invalid session }
+  /auth/me:
+    get:
+      tags: [auth]
+      summary: Current user from session cookie or Bearer token
+      responses:
+        "200": { $ref: "#/components/responses/UserProfile" }
+        "401": { description: Not authenticated }
+  /auth/logout:
+    post:
+      tags: [auth]
+      summary: Destroy session
+      responses:
+        "200": { description: Logged out }
+  /assistant/chat:
+    post:
+      tags: [assistant]
+      summary: Agentic chat (SSE stream)
+      description: |
+        Streams assistant tokens as Server-Sent Events. The agent assembles context from
+        the domain graph, the user's current screen context, and any attached file ids.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ChatRequest" }
+      responses:
+        "200":
+          description: SSE stream of `text/event-stream`; final event is `done` with sources
+          content:
+            text/event-stream: {}
+        "401": { description: Not authenticated }
+  /files:
+    post:
+      tags: [files]
+      summary: Upload a file (multipart)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file: { type: string, format: binary }
+                context: { type: string, description: "e.g. permit:WR2024xxxxxx or chat" }
+      responses:
+        "200": { $ref: "#/components/responses/FileRecord" }
+        "401": { description: Not authenticated }
+    get:
+      tags: [files]
+      summary: List current user's files (optionally by context)
+      parameters:
+        - name: context
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: File list
+  /files/{id}/download:
+    get:
+      tags: [files]
+      summary: Download a file by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200": { description: File bytes }
+        "404": { description: Not found }
+  /files/{id}:
+    delete:
+      tags: [files]
+      summary: Soft-delete a file
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200": { description: Deleted }
+components:
+  responses:
+    UserProfile:
+      description: Authenticated user profile
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/User" }
+    FileRecord:
+      description: Stored file metadata
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/File" }
+  schemas:
+    User:
+      type: object
+      properties:
+        user_id: { type: string }
+        email: { type: string }
+        name: { type: string }
+        picture: { type: string }
+    ChatRequest:
+      type: object
+      required: [message]
+      properties:
+        message: { type: string }
+        domain_context: { type: string, description: "What the user is doing on screen" }
+        session_id: { type: string }
+        file_ids:
+          type: array
+          items: { type: string }
+          description: Files to fold into context
+    File:
+      type: object
+      properties:
+        id: { type: string }
+        original_filename: { type: string }
+        content_type: { type: string }
+        size: { type: integer }
+        context: { type: string }
+        created_at: { type: string, format: date-time }

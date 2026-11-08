@@ -1,8 +1,9 @@
 import asyncio
 from contextlib import suppress
 from datetime import timedelta
-from fastapi import FastAPI, APIRouter, Query, Request, Response, HTTPException
+from fastapi import FastAPI, APIRouter, Query, Request, Response, HTTPException, UploadFile, File, Form
 import httpx
+import requests
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -106,7 +107,7 @@ DOMAINS_CONTEXT = [
 ]
 
 
-def build_system_message(domain_context: str | None) -> str:
+def build_system_message(domain_context: str | None, file_sections: list | None = None) -> str:
     graph_summary = "\n".join(
         f"- {d['name']}: capabilities {', '.join(d['caps'])}; {d['diagrams']} diagrams; {d['apis']} APIs; {d['arb_review']} versions in ARB review"
         for d in DOMAINS_CONTEXT
@@ -122,6 +123,10 @@ def build_system_message(domain_context: str | None) -> str:
     )
     if domain_context:
         base += f"\n\nThe user is currently working on: {domain_context}. Tailor answers to help them."
+    if file_sections:
+        base += "\n\nATTACHED FILES:"
+        for fname, text in file_sections:
+            base += f"\n--- {fname} ---\n{text[:MAX_FILE_CHARS]}\n--- end {fname} ---"
     return base
 
 
@@ -129,6 +134,68 @@ class ChatRequest(BaseModel):
     message: str
     domain_context: str | None = None
     session_id: str | None = None
+    file_ids: list[str] = []
+
+
+STORAGE_BASE = (os.environ.get("INTEGRATION_PROXY_URL") or "").strip() or "https://integrations.emergentagent.com"
+STORAGE_URL = STORAGE_BASE.rstrip("/") + "/objstore/api/v1/storage"
+MAX_FILE_CHARS = 8000
+
+_storage_key: str | None = None
+
+
+def init_storage(force: bool = False) -> str:
+    """Call once at startup; force=True mints a new key if the old one went inactive."""
+    global _storage_key
+    if _storage_key and not force:
+        return _storage_key
+    resp = requests.post(f"{STORAGE_URL}/init", json={"emergent_key": os.environ.get("EMERGENT_LLM_KEY", "")}, timeout=30)
+    resp.raise_for_status()
+    _storage_key = resp.json()["storage_key"]
+    return _storage_key
+
+
+def put_object(path: str, data: bytes, content_type: str) -> dict:
+    key = init_storage()
+    resp = requests.put(
+        f"{STORAGE_URL}/objects/{path}",
+        headers={"X-Storage-Key": key, "Content-Type": content_type},
+        data=data, timeout=120,
+    )
+    if resp.status_code == 404:
+        resp = requests.put(
+            f"{STORAGE_URL}/objects/{path}",
+            headers={"X-Storage-Key": init_storage(force=True), "Content-Type": content_type},
+            data=data, timeout=120,
+        )
+    resp.raise_for_status()
+    return resp.json()
+
+
+def get_object(path: str) -> tuple[bytes, str]:
+    key = init_storage()
+    resp = requests.get(f"{STORAGE_URL}/objects/{path}", headers={"X-Storage-Key": key}, timeout=60)
+    if resp.status_code == 404:
+        resp = requests.get(f"{STORAGE_URL}/objects/{path}", headers={"X-Storage-Key": init_storage(force=True)}, timeout=60)
+    resp.raise_for_status()
+    return resp.content, resp.headers.get("Content-Type", "application/octet-stream")
+
+
+def extract_text(data: bytes, content_type: str, filename: str) -> str:
+    if content_type == "application/pdf" or filename.lower().endswith(".pdf"):
+        try:
+            import io
+
+            from pypdf import PdfReader
+
+            reader = PdfReader(io.BytesIO(data))
+            return "\n".join((p.extract_text() or "") for p in reader.pages[:20])
+        except Exception:
+            return ""
+    try:
+        return data.decode("utf-8", errors="ignore")
+    except Exception:
+        return ""
 
 
 @api_router.post("/assistant/chat")
@@ -138,19 +205,109 @@ async def assistant_chat(payload: ChatRequest):
     api_key = os.environ.get("EMERGENT_LLM_KEY")
     if not api_key:
         return {"reply": "Assistant is not configured yet.", "sources": []}
+
+    # Assemble attached-file context (spec: backend-app/specs/skills/knowledge-assistant.skill.md)
+    file_sections: list[tuple[str, str]] = []
+    file_sources: list[str] = []
+    if payload.file_ids:
+        records = await db.files.find(
+            {"id": {"$in": payload.file_ids}, "is_deleted": False}, {"_id": 0}
+        ).to_list(len(payload.file_ids))
+        for rec in records:
+            try:
+                data = get_object(rec["storage_path"])[0]
+                text = extract_text(data, rec.get("content_type", ""), rec.get("original_filename", ""))
+                if text.strip():
+                    file_sections.append((rec["original_filename"], text))
+                    file_sources.append(rec["original_filename"])
+            except Exception:
+                continue
+
     chat = LlmChat(
         api_key=api_key,
         session_id=payload.session_id or f"iaf-{uuid.uuid4().hex[:12]}",
-        system_message=build_system_message(payload.domain_context),
+        system_message=build_system_message(payload.domain_context, file_sections),
     )
     response = await chat.send_message(UserMessage(text=payload.message))
     q = payload.message.lower()
-    sources = [d["name"] for d in DOMAINS_CONTEXT if any(w in q for w in d["name"].lower().split())]
+    sources = [
+        d["name"]
+        for d in DOMAINS_CONTEXT
+        if any(len(w) > 3 and w in q for w in d["name"].lower().replace("&", " ").split())
+    ]
     if not sources and any(w in q for w in ("permit", "design", "build", "pts", "governance")):
         sources = ["Governance · Permit-to-Design"]
     if not sources:
         sources = ["USCC Knowledge Graph"]
-    return {"reply": response, "sources": sources[:3]}
+    sources = sources[:3] + [s for s in file_sources if s not in sources[:3]]
+    return {"reply": response, "sources": sources}
+
+
+MAX_UPLOAD_BYTES = 25 * 1024 * 1024
+
+
+@api_router.post("/files")
+async def upload_file(request: Request, file: UploadFile = File(...), context: str = Form("")):
+    user = await get_current_user(request)
+    data = await file.read()
+    if len(data) > MAX_UPLOAD_BYTES:
+        raise HTTPException(status_code=413, detail="File exceeds 25 MB limit")
+    ext = file.filename.split(".")[-1].lower() if "." in (file.filename or "") else "bin"
+    path = f"iaf/uploads/{user['user_id']}/{uuid.uuid4()}.{ext}"
+    result = put_object(path, data, file.content_type or "application/octet-stream")
+    record = {
+        "id": str(uuid.uuid4()),
+        "user_id": user["user_id"],
+        "storage_path": result["path"],
+        "original_filename": file.filename or "file",
+        "content_type": file.content_type or "application/octet-stream",
+        "size": result.get("size", len(data)),
+        "context": context,
+        "is_deleted": False,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.files.insert_one(record)
+    record.pop("_id", None)
+    return record
+
+
+@api_router.get("/files")
+async def list_files(request: Request, context: str = Query("")):
+    user = await get_current_user(request)
+    query = {"user_id": user["user_id"], "is_deleted": False}
+    if context:
+        query["context"] = context
+    rows = await db.files.find(query, {"_id": 0}).sort("created_at", -1).limit(200).to_list(200)
+    return rows
+
+
+@api_router.get("/files/{file_id}/download")
+async def download_file(file_id: str, request: Request, auth: str = Query(None)):
+    # img/link tags cannot send headers — allow ?auth=<token> fallback
+    if auth and not request.cookies.get("session_token"):
+        request.headers.__dict__["_list"].append((b"authorization", f"Bearer {auth}".encode()))
+    user = await get_current_user(request)
+    record = await db.files.find_one({"id": file_id, "is_deleted": False}, {"_id": 0})
+    if not record or record["user_id"] != user["user_id"]:
+        raise HTTPException(status_code=404, detail="File not found")
+    data, content_type = get_object(record["storage_path"])
+    return Response(
+        content=data,
+        media_type=record.get("content_type") or content_type,
+        headers={"Content-Disposition": f'attachment; filename="{record["original_filename"]}"'},
+    )
+
+
+@api_router.delete("/files/{file_id}")
+async def delete_file(file_id: str, request: Request):
+    user = await get_current_user(request)
+    result = await db.files.update_one(
+        {"id": file_id, "user_id": user["user_id"], "is_deleted": False},
+        {"$set": {"is_deleted": True}},
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="File not found")
+    return {"ok": True}
 
 
 SESSION_DATA_URL = "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data"

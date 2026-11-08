@@ -5,6 +5,7 @@ import {
   Boxes, FileSearch, Sparkles, Search, Network,
 } from "lucide-react";
 import AppShell, { NAV_ITEMS } from "../components/AppShell";
+import { FileUpload, FileChip } from "../components/FileUpload";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -68,7 +69,7 @@ function useAssistant(domainContext) {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, busy]);
 
-  const send = async (text) => {
+  const send = async (text, fileIds = []) => {
     const t = text.trim();
     if (!t || busy) return;
     setMessages((m) => [...m, { role: "user", text: t }]);
@@ -76,13 +77,51 @@ function useAssistant(domainContext) {
     try {
       const res = await fetch(`${API}/api/assistant/chat`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Accept: "text/event-stream" },
         credentials: "include",
-        body: JSON.stringify({ message: t, domain_context: domainContext || null }),
+        body: JSON.stringify({ message: t, domain_context: domainContext || null, file_ids: fileIds }),
       });
       if (!res.ok) throw new Error();
-      const data = await res.json();
-      setMessages((m) => [...m, { role: "assistant", text: data.reply, sources: data.sources || [] }]);
+      const contentType = res.headers.get("content-type") || "";
+      if (contentType.includes("text/event-stream") && res.body) {
+        // SSE streaming: append deltas, finish on `done`
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+        let acc = "";
+        setMessages((m) => [...m, { role: "assistant", text: "", sources: [] }]);
+        const patch = (fn) =>
+          setMessages((m) => m.map((msg, i) => (i === m.length - 1 ? fn(msg) : msg)));
+        for (;;) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const events = buffer.split("\n\n");
+          buffer = events.pop() || "";
+          for (const chunk of events) {
+            const eventName = chunk.match(/^event: (.+)$/m)?.[1];
+            const dataLine = chunk.match(/^data: (.+)$/m)?.[1];
+            if (!dataLine) continue;
+            try {
+              const payload = JSON.parse(dataLine);
+              if (eventName === "delta") {
+                acc += payload.content || "";
+                const text2 = acc;
+                patch((msg) => ({ ...msg, text: text2 }));
+              } else if (eventName === "done") {
+                patch((msg) => ({ ...msg, text: payload.reply || acc, sources: payload.sources || [] }));
+              } else if (eventName === "error") {
+                throw new Error(payload.detail);
+              }
+            } catch (e) {
+              if (eventName === "error") throw e;
+            }
+          }
+        }
+      } else {
+        const data = await res.json();
+        setMessages((m) => [...m, { role: "assistant", text: data.reply, sources: data.sources || [] }]);
+      }
     } catch {
       setMessages((m) => [
         ...m,
@@ -107,11 +146,12 @@ const SUGGESTIONS = [
 function ChatPanel({ domainContext, full = false, testid = "assistant-panel" }) {
   const { messages, busy, send, endRef } = useAssistant(domainContext);
   const [draft, setDraft] = useState("");
+  const [attachments, setAttachments] = useState([]);
   return (
     <div className={`flex h-full flex-col ${full ? "" : ""}`} data-testid={testid}>
       <div className="flex-1 space-y-4 overflow-y-auto px-5 py-5">
         {messages.length === 0 && (
-          <div className="mx-auto max-w-lg pt-10 text-center">
+          <div className="mx-auto max-w-lg pt-10 text-center" data-testid="chat-empty-state">
             <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-[var(--tile)] text-white">
               <MessageSquare size={20} aria-hidden="true" />
             </span>
@@ -170,15 +210,28 @@ function ChatPanel({ domainContext, full = false, testid = "assistant-panel" }) 
         <div ref={endRef} />
       </div>
       <div className="border-t border-[var(--line)] px-5 py-4">
+        {attachments.length > 0 && (
+          <div className="mb-3 flex flex-wrap gap-2" data-testid={`${testid}-attachments`}>
+            {attachments.map((f) => (
+              <FileChip key={f.id} file={f} onRemove={(r) => setAttachments((a) => a.filter((x) => x.id !== r.id))} />
+            ))}
+          </div>
+        )}
         <label htmlFor={`${testid}-input`} className="sr-only">Ask the Knowledge Assistant</label>
         <form
           className="flex items-center gap-2 border border-[var(--line)] bg-[var(--bg)] px-4 py-3"
           onSubmit={(e) => {
             e.preventDefault();
-            send(draft);
+            send(draft, attachments.map((f) => f.id));
             setDraft("");
           }}
         >
+          <FileUpload
+            compact
+            context="chat"
+            testid={`${testid}-upload`}
+            onUploaded={(files) => setAttachments((a) => [...a, ...files])}
+          />
           <input
             id={`${testid}-input`}
             data-testid={`${testid}-input`}
@@ -272,7 +325,18 @@ function GovernanceView({ onCreate }) {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("All");
   const [selected, setSelected] = useState(null);
+  const [files, setFiles] = useState([]);
   const FILTERS = ["All", "Draft", "In review", "Approved", "Not created"];
+  useEffect(() => {
+    if (!selected) {
+      setFiles([]);
+      return;
+    }
+    fetch(`${API}/api/files?context=${encodeURIComponent("permit:" + selected.id)}`, { credentials: "include" })
+      .then((r) => (r.ok ? r.json() : []))
+      .then((f) => setFiles(Array.isArray(f) ? f : []))
+      .catch(() => setFiles([]));
+  }, [selected]);
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return PROJECTS.filter((p) => {
@@ -380,7 +444,19 @@ function GovernanceView({ onCreate }) {
               <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--muted)]">
                 {selected.owner} · {selected.lob}
               </p>
+              {files.length > 0 && (
+                <span className="mt-1.5 flex flex-wrap gap-1.5" data-testid="gov-attachments">
+                  {files.map((f) => (
+                    <FileChip key={f.id} file={f} />
+                  ))}
+                </span>
+              )}
             </div>
+            <FileUpload
+              context={`permit:${selected.id}`}
+              testid="gov-upload-button"
+              onUploaded={(up) => setFiles((f) => [...up, ...f])}
+            />
             <button
               type="button"
               data-testid="gov-create-template-button"
@@ -399,6 +475,13 @@ function GovernanceView({ onCreate }) {
 function PermitEditorView({ project }) {
   const reduce = useReducedMotion();
   const [chatOpen, setChatOpen] = useState(true);
+  const [attachments, setAttachments] = useState([]);
+  useEffect(() => {
+    fetch(`${API}/api/files?context=${encodeURIComponent("permit:" + project.id)}`, { credentials: "include" })
+      .then((r) => (r.ok ? r.json() : []))
+      .then((f) => setAttachments(Array.isArray(f) ? f : []))
+      .catch(() => {});
+  }, [project.id]);
   return (
     <div className="relative h-full" data-testid="permit-editor">
       <div className="h-full overflow-y-auto px-5 py-6 sm:px-8">
@@ -409,6 +492,13 @@ function PermitEditorView({ project }) {
         <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
           The Knowledge Assistant on the right helps you complete each section with context pulled from the graph.
         </p>
+        {attachments.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-2" data-testid="permit-attachments">
+            {attachments.map((f) => (
+              <FileChip key={f.id} file={f} />
+            ))}
+          </div>
+        )}
         <div className="mt-8 grid max-w-5xl gap-6 lg:grid-cols-2">
           <section className="border border-[var(--line)] bg-[var(--surface)] p-6" aria-labelledby="sec-1">
             <h3 id="sec-1" className="font-display text-lg font-semibold">1 · Request details</h3>
@@ -457,7 +547,12 @@ function PermitEditorView({ project }) {
             />
           </section>
         </div>
-        <div className="mt-8 flex items-center gap-3">
+        <div className="mt-8 flex flex-wrap items-center gap-3">
+          <FileUpload
+            context={`permit:${project.id}`}
+            testid="permit-upload-button"
+            onUploaded={(up) => setAttachments((a) => [...a, ...up])}
+          />
           <button
             type="button"
             data-testid="permit-create-draft-button"
