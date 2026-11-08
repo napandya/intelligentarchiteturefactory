@@ -1,2 +1,4 @@
 ffmpeg=7:5.1.9-0+deb12u1
 golang-go=2:1.19~1
+postgresql=15+248+deb12u1
+postgresql-client=15+248+deb12u1
