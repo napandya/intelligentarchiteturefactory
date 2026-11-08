@@ -68,16 +68,23 @@ Review the current UX/UI of Intelligent Architecture Factory (iAF). Using the v6
 - iAF logo light-mode fix (navy strokes via --iaf-stroke) — in repo; ships on next Deploy
 - Production redeploy confirmed live at intelligentarchitecture.org (left nav, light/dark, Home)
 
+## Implemented (2026-07, v8 — preview, pending Deploy)
+- File & media storage LIVE: upload/download/list/soft-delete via Emergent object storage (POST/GET/DELETE /api/files); verified end-to-end with real storage round-trip
+- Assistant file context: uploaded PDF/TXT content folded into system message; citations include filename (verified: "Rewards & Loyalty has 90 APIs" answered from uploaded file, sources ['Rewards & Loyalty','test-upload.txt'])
+- Upload UI: FileUpload/FileChip components in assistant chat, governance selection bar, permit editor
+- backend-app/ platform (spec-driven, in repo e0c0da2): Go gateway (chi, builds+runs locally), FastAPI services (auth/assistant/files) with shared async SQLAlchemy + Postgres, docker-compose, OpenAPI gateway.yaml, knowledge-assistant.skill.md, ADR-0001
+- Frontend chat supports SSE streaming (reads delta/done events) — ready when assistant service replaces legacy endpoint
+- ChatGPT integration confirmed current (gpt-5.4 via EMERGENT_LLM_KEY)
+
 ## Backlog
-- P0: Add iaf.org custom domain in deployment UI + DNS at registrar (walk user through)
+- P0: Deploy this batch (uploads + file-grounded chat)
+- P0: Cutover from legacy backend to backend-app gateway+services in production (needs Postgres provisioning)
+- P0: www.intelligentarchitecture.org → bare redirect (requested from deployer)
 - P1: Real Citi review data instead of the 36 sample projects
-- P1: Persist assistant conversations in MongoDB
+- P1: Persist assistant conversations (Mongo now; Postgres after cutover)
 - P2: Team email allowlist (currently any Google account can enter)
 - P2: Richer citations (per-fact source lines once the graph API returns structured sources)
-- P1: Replace recreated Citi/iAF SVG marks with official brand assets if available
-- P2: Mobile nav drawer for option pages
-- P2: Light-theme variant (brand board has a validated light palette)
 
 ## Next tasks
-- Choose a direction and refine it (copy, imagery, density)
-- Deploy chosen page
+- Deploy current batch; verify uploads on production
+- Provision Postgres and cut over to backend-app
